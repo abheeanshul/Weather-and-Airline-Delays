@@ -51,21 +51,6 @@ The project follows a layered data wrangling approach:
 
 ---
 
-## Repository Structure
-
-├── sql/
-│ └── FA25_DW_Final_Project_SQL_Code.qmd
-├── python/
-│ └── FA25_DW_Final_Project_Python_Code.html
-├── excel/
-│ └── FA25_DW_Final_Project_Excel_power_query.xlsb
-├── report/
-│ └── FA25_DW_Final_Project_Draft_Report.qmd
-└── README.md
-
-
----
-
 ## Tools and Skills Demonstrated
 
 - SQL data modeling and joins  
