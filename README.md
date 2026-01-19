@@ -53,3 +53,43 @@ The project follows a layered data wrangling approach:
 
 ## Repository Structure
 
+├── sql/
+│ └── FA25_DW_Final_Project_SQL_Code.qmd
+├── python/
+│ └── FA25_DW_Final_Project_Python_Code.html
+├── excel/
+│ └── FA25_DW_Final_Project_Excel_power_query.xlsb
+├── report/
+│ └── FA25_DW_Final_Project_Draft_Report.qmd
+└── README.md
+
+
+---
+
+## Tools and Skills Demonstrated
+
+- SQL data modeling and joins  
+- Python based data wrangling  
+- Excel Power Query transformations  
+- Data validation and quality checks  
+- Analytical thinking and documentation  
+
+---
+
+## Key Takeaways
+
+- Real world data is rarely analysis ready  
+- Most analytical value comes from thoughtful data preparation  
+- Consistent logic across tools is critical for reliability  
+- Clear documentation is as important as clean code  
+
+---
+
+## Files
+
+- Draft project report  
+- SQL transformation logic  
+- Python cleaning and validation scripts  
+- Excel Power Query workflow  
+
+
