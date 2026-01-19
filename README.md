@@ -1,4 +1,4 @@
-# Weather-and-Airline-Delays
+# Weather and Airline Delays
 ## Data Wrangling and Analytics Project
 
 This repository contains an end to end data wrangling and analysis project exploring the relationship between weather conditions and airline delays. The project focuses on transforming raw, messy datasets into analysis ready tables using SQL, Python, R, and Excel, followed by structured analysis and reporting.
@@ -28,7 +28,7 @@ Airline delays are influenced by multiple operational and external factors, with
 
 ## Workflow Overview
 
-The project follows a layered data wrangling approach:
+The project follows a layered data wrangling and analysis approach:
 
 ### SQL
 - Data extraction and joins  
@@ -39,6 +39,11 @@ The project follows a layered data wrangling approach:
 - Data cleaning and transformation  
 - Validation checks and exploratory analysis  
 - Supporting feature engineering  
+
+### R
+- Exploratory data analysis  
+- Statistical summaries and validation  
+- Analytical checks to support findings  
 
 ### Excel Power Query
 - Additional transformations  
@@ -55,6 +60,7 @@ The project follows a layered data wrangling approach:
 
 - SQL data modeling and joins  
 - Python based data wrangling  
+- R based exploratory and statistical analysis  
 - Excel Power Query transformations  
 - Data validation and quality checks  
 - Analytical thinking and documentation  
@@ -65,7 +71,8 @@ The project follows a layered data wrangling approach:
 
 - Real world data is rarely analysis ready  
 - Most analytical value comes from thoughtful data preparation  
-- Consistent logic across tools is critical for reliability  
+- Using multiple tools strengthens validation and reliability  
+- Consistent logic across tools is critical for trust  
 - Clear documentation is as important as clean code  
 
 ---
@@ -75,6 +82,7 @@ The project follows a layered data wrangling approach:
 - Draft project report  
 - SQL transformation logic  
 - Python cleaning and validation scripts  
+- R exploratory and statistical analysis  
 - Excel Power Query workflow  
 
 
