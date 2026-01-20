@@ -1,0 +1,192 @@
+---
+title: "Weather & Airline Delays - Wrangling Project"
+format: html
+execute:
+  echo: true
+  warning: true
+  error: true
+---
+
+```{r}
+#| label: setup
+#| echo: true
+
+# Install/load packages (run once)
+reqs <- c("DBI","duckdb","dplyr","glue")
+newp <- reqs[!(reqs %in% installed.packages()[,"Package"])]
+if(length(newp)) install.packages(newp)
+lapply(reqs, library, character.only = TRUE)
+
+# File paths (adjust these if your filenames differ)
+noaa_csv <- "StormEvents_locations-ftp_v1.0_d2024_c20250818.csv"
+bts_csv  <- "Airline_Delay_Cause.csv"
+airp_csv <- "airport-codes.csv"
+
+# Create/connect DuckDB database (stored locally in your project folder)
+duckdb_file <- "wrangle.duckdb"
+con <- DBI::dbConnect(duckdb::duckdb(), dbdir = duckdb_file, read_only = FALSE)
+
+# Helper function to load CSVs into DuckDB tables
+library(glue)
+materialize_csv <- function(con, csv_path, table_name){
+  if(!file.exists(csv_path)) stop("CSV not found: ", csv_path)
+  if(table_name %in% DBI::dbListTables(con)){
+    message("Table already exists in DuckDB: ", table_name)
+    return(invisible(TRUE))
+  }
+  message("Creating table ", table_name, " from ", csv_path)
+  sql <- glue("CREATE TABLE {`table_name`} AS SELECT * FROM read_csv_auto('{csv_path}');")
+  DBI::dbExecute(con, sql)
+  message("Done: ", table_name)
+}
+
+# Create tables (only once)
+materialize_csv(con, noaa_csv, "storm_events")
+materialize_csv(con, airp_csv, "airport_codes")
+materialize_csv(con, bts_csv,  "airport_delays")
+
+# Check which tables exist
+DBI::dbListTables(con)
+```
+
+```{sql connection=con}
+-- counts
+SELECT 'storm_events' AS table_name, COUNT(*) AS nrows FROM storm_events
+UNION ALL
+SELECT 'airport_codes', COUNT(*) FROM airport_codes
+UNION ALL
+SELECT 'airport_delays', COUNT(*) FROM airport_delays;
+```
+
+```{sql connection=con}
+--Sample rows
+SELECT 'storm_events' AS src, * FROM storm_events LIMIT 3;
+```
+
+```{sql connection=con}
+--Sample rows
+SELECT 'airport_codes' AS src, * FROM airport_codes LIMIT 3;
+
+```
+
+```{sql connection=con}
+--Sample rows
+SELECT 'airport_delays' AS src, * FROM airport_delays LIMIT 3;
+```
+
+```{sql connection=con}
+SELECT COUNT(*) AS suspicious
+FROM airport_delays
+WHERE (COALESCE(carrier_ct,0)+COALESCE(weather_ct,0)+COALESCE(nas_ct,0)+COALESCE(security_ct,0)+COALESCE(late_aircraft_ct,0)) > COALESCE(arr_flights,0);
+
+```
+
+```{sql connection=con}
+SELECT SUM(weather_ct) AS total_weather_ct, SUM(carrier_ct) AS total_carrier_ct,
+       SUM(nas_ct), SUM(security_ct), SUM(late_aircraft_ct)
+FROM airport_delays;
+
+```
+
+```{sql connection=con}
+SELECT SUM(arr_cancelled), SUM(arr_diverted), AVG(arr_cancelled) FROM airport_delays
+
+```
+
+```{sql connection=con}
+-- Create a simple, cleaned airport_codes table
+CREATE OR REPLACE TABLE airport_codes_clean AS
+SELECT
+  -- prefer iata when available; else strip leading 'K' from ident for US airports
+  CASE
+    WHEN iata_code IS NOT NULL AND iata_code <> '' THEN iata_code
+    WHEN iso_country = 'US' AND LEFT(ident,1) = 'K' THEN SUBSTR(ident,2)
+    ELSE ident
+  END AS airport_code, 
+  name AS airport_name,
+  iso_country,
+  -- iso_region looks like 'US-PA' so grab the state code (last 2 chars)
+  SUBSTR(iso_region, 4, 2) AS state,
+  municipality AS city,
+  type AS type,
+  elevation_ft AS elev_ft,
+  -- split coordinates "lat, long"
+  CAST(SPLIT_PART(coordinates, ',', 1) AS DOUBLE) AS lat,
+  CAST(SPLIT_PART(coordinates, ',', 2) AS DOUBLE) AS lon
+FROM airport_codes
+WHERE iso_country = 'US'
+  AND type IN ('large_airport','medium_airport','small_airport');
+
+```
+
+```{sql connection=con}
+select *
+from airport_codes_clean
+limit 10 
+--Sample rows check
+```
+
+```{sql connection=con}
+
+CREATE OR REPLACE TABLE airport_delays_clean AS
+SELECT
+  CAST(year AS INTEGER) AS yr,
+  CAST(month AS INTEGER) AS mth,
+  airport AS airport_code,
+  arr_flights AS flights,
+  COALESCE(arr_del15, 0) AS delayed_flights,
+  COALESCE(arr_delay, 0) AS delay_mins,
+    COALESCE(weather_ct,0) AS weather_ct,
+  COALESCE(weather_delay,0) AS weather_delay_mins,
+  COALESCE(carrier_ct,0) AS carrier_ct,
+  COALESCE(carrier_delay,0) AS carrier_delay_mins,
+  COALESCE(arr_cancelled,0) AS cancelled,
+  COALESCE(arr_diverted,0)  AS diverted
+FROM airport_delays
+WHERE year IS NOT NULL
+  AND month BETWEEN 1 AND 12
+  AND arr_flights IS NOT NULL
+  AND arr_flights > 0
+```
+
+```{sql connection=con}
+select *
+from airport_delays_clean
+order by mth
+limit 10 
+--Sample rows check
+```
+
+```{sql connection=con}
+
+-- Clean storm events (numeric YEARMONTH handled directly)
+CREATE OR REPLACE TABLE storm_events_clean AS
+SELECT
+  CAST(YEARMONTH / 100 AS INTEGER) AS yr,
+  CAST(YEARMONTH % 100 AS INTEGER) AS mth,
+  EVENT_ID,
+  LOCATION,
+  CAST(LATITUDE AS DOUBLE)  AS lat,
+  CAST(LONGITUDE AS DOUBLE) AS lon
+FROM storm_events
+WHERE (lat BETWEEN 18 AND 72)  -- Filter to restrict data to only US
+  AND (lon BETWEEN -179 AND -66);
+
+```
+
+```{sql connection=con}
+
+select * from storm_events_clean 
+order by mth 
+limit 10
+
+```
+
+```{sql connection=con }
+SELECT LOCATION, lat, lon
+FROM storm_events_clean
+WHERE LOWER(LOCATION) LIKE '%lahore%';
+
+```
+
+\
