@@ -1,3 +1,8 @@
+This repository contains an end to end data wrangling and analysis project exploring the relationship between weather conditions and airline delays. The project focuses on transforming raw, messy datasets into analysis ready tables using SQL, Python, R, and Excel, followed by structured analysis and reporting.
+
+The emphasis of this project is not only on results, but on building a reliable and reproducible data pipeline across multiple tools.
+
+
 # Weather and Airline Delays
 ## Data Wrangling and Analytics Project
 
